@@ -22,17 +22,12 @@ This is a simple tray menu application designed to help manage and control servi
 
 ## Installation
 
-1. Clone the repository:
+1. Install from the repository:
 
 ```
-git clone https://github.com/xxlv/go-servicemanager
+ go install github.com/xxlv/go-servicemanager@latest
 ```
 
-```
-go run .
-```
-
-2. Run the setup script or instructions provided for your environment.
 
 ## License
 
