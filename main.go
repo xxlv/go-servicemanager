@@ -32,9 +32,7 @@ type AppState struct {
 	window fyne.Window
 }
 
-// Create a simple tray menu to manage a set of services
 func main() {
-
 	config, err := LoadConfigOrCreate(configFile)
 	if err != nil {
 		log.Fatalf("Failed to load config: %v", err)
@@ -209,32 +207,44 @@ func showServiceDetails(state *AppState, service *Service) {
 
 	nameEntry := widget.NewEntry()
 	nameEntry.SetText(service.Name)
-	nameEntry.Disable()
 
 	workDirEntry := widget.NewEntry()
 	workDirEntry.SetText(service.WorkDir)
-	workDirEntry.Disable()
 
 	commandEntry := widget.NewEntry()
 	commandEntry.SetText(service.Command)
-	commandEntry.Disable()
 
-	editBtn := widget.NewButton("Edit", func() {
-		editService(state, service)
+	addBtn := widget.NewButton("Save", func() {
+		newService := &Service{
+			Name:    nameEntry.Text,
+			WorkDir: workDirEntry.Text,
+			Command: commandEntry.Text,
+		}
+		saveService(state, service, newService)
+		dialogWin.Close()
 	})
 
 	deleteBtn := widget.NewButton("Delete", func() {
 		deleteService(state, service)
 	})
 
-	buttons := container.NewHBox(editBtn, deleteBtn)
+	buttons := container.NewHBox(addBtn, deleteBtn)
 	content := container.NewVBox(nameEntry, workDirEntry, commandEntry, buttons)
 	dialogWin.SetContent(content)
 	dialogWin.Show()
 }
-func editService(state *AppState, service *Service) {
-	log.Printf("Edit service: %s", service.Name)
-	_ = showAddServiceDialog(state)
+func saveService(state *AppState, oldService *Service, newService *Service) {
+	log.Printf("Save service: old:%+v,new:%+v", oldService, newService)
+	needUpdate := []Service{}
+	for i := range state.config.Services {
+		if state.config.Services[i] != *oldService {
+			needUpdate = append(needUpdate, state.config.Services[i])
+		}
+	}
+	needUpdate = append(needUpdate, *newService)
+	state.config.Services = needUpdate
+	_ = SaveConfig(configFile, state.config)
+	state.updateMenu()
 }
 
 func deleteService(state *AppState, service *Service) {
